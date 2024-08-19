@@ -20757,3 +20757,12 @@ body.white-version .rn-btn-ulderline {
 }
 
 /*# sourceMappingURL=../maps/style.css.map */
+
+
+@media only screen and (min-width: 700px) {
+
+    .image-logo{
+        width:60%
+    }
+}
+
