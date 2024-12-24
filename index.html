@@ -16,11 +16,28 @@
     <link rel="stylesheet" href="assets/css/vendor/slick-theme.css">
     <link rel="stylesheet" href="assets/css/vendor/aos.css">
     <link rel="stylesheet" href="assets/css/plugins/feature.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Style css -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <style>
+            .error-message {
+                color: red;
+                font-size: 12px;
+                margin-top: 5px;
+                display: none;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .error .form-control {
+                border-color: red;
+            }
+        </style>
 </head>
 
 <body class="template-color-1 spybody" data-spy="scroll" data-target=".navbar-example2" data-offset="70">
@@ -671,49 +688,47 @@
                         <div class="contact-form-wrapper">
                             <div class="introduce">
 
-                                <form class="rnt-contact-form rwt-dynamic-form row" id="contact-form" method="POST"
-                                    action="mail.php">
-
+                                <form class="rnt-contact-form rwt-dynamic-form row" id="contact-form" method="POST">
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="contact-name">Your Name</label>
-                                            <input class="form-control form-control-lg" name="contact-name"
-                                                id="contact-name" type="text">
+                                            <input class="form-control form-control-lg" name="contact-name" id="contact-name" type="text">
+                                            <div class="error-message" id="contact-name-error"></div>
                                         </div>
                                     </div>
-
+                            
                                     <div class="col-lg-6">
                                         <div class="form-group">
                                             <label for="contact-phone">Phone Number</label>
-                                            <input class="form-control" name="contact-phone" id="contact-phone"
-                                                type="text">
+                                            <input class="form-control" name="contact-phone" id="contact-phone" type="text">
+                                            <div class="error-message" id="contact-phone-error"></div>
                                         </div>
                                     </div>
-
+                            
                                     <div class="col-lg-12">
                                         <div class="form-group">
                                             <label for="contact-email">Email</label>
-                                            <input class="form-control form-control-sm" id="contact-email"
-                                                name="contact-email" type="email">
+                                            <input class="form-control form-control-sm" id="contact-email" name="contact-email" type="email">
+                                            <div class="error-message" id="contact-email-error"></div>
                                         </div>
                                     </div>
-
+                            
                                     <div class="col-lg-12">
                                         <div class="form-group">
-                                            <label for="subject">subject</label>
-                                            <input class="form-control form-control-sm" id="subject" name="subject"
-                                                type="text">
+                                            <label for="subject">Subject</label>
+                                            <input class="form-control form-control-sm" id="subject" name="subject" type="text">
+                                            <div class="error-message" id="subject-error"></div>
                                         </div>
                                     </div>
-
+                            
                                     <div class="col-lg-12">
                                         <div class="form-group">
                                             <label for="contact-message">Your Message</label>
-                                            <textarea name="contact-message" id="contact-message" cols="30"
-                                                rows="10"></textarea>
+                                            <textarea name="contact-message" id="contact-message" cols="30" rows="10"></textarea>
+                                            <div class="error-message" id="contact-message-error"></div>
                                         </div>
                                     </div>
-
+                            
                                     <div class="col-lg-12">
                                         <button name="submit" type="submit" id="submit" class="rn-btn">
                                             <span>SEND MESSAGE</span>
@@ -1539,6 +1554,104 @@
     <script src="assets/js/vendor/jquery-one-page-nav.js"></script>
     <!-- main JS -->
     <script src="assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>    <script>
+        (function() {
+            emailjs.init("eZw4i9KQiC5yMJbDT");
+        })();
+
+        function validateForm() {
+            let isValid = true;
+            const fields = {
+                'contact-name': {
+                    required: true,
+                    message: 'Name is required'
+                },
+                'contact-phone': {
+                    required: true,
+                    pattern: /^\d{10}$/,
+                    message: 'Please enter a valid 10-digit phone number'
+                },
+                'contact-email': {
+                    required: true,
+                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email address'
+                },
+                'subject': {
+                    required: true,
+                    message: 'Subject is required'
+                },
+                'contact-message': {
+                    required: true,
+                    minLength: 10,
+                    message: 'Message must be at least 10 characters long'
+                }
+            };
+
+            // Reset previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-group').forEach(el => el.classList.remove('error'));
+
+            // Validate each field
+            Object.keys(fields).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const rules = fields[fieldId];
+                const errorDiv = document.getElementById(`${fieldId}-error`);
+                
+                if (rules.required && !field.value.trim()) {
+                    showError(field, errorDiv, rules.message);
+                    isValid = false;
+                } else if (rules.pattern && !rules.pattern.test(field.value)) {
+                    showError(field, errorDiv, rules.message);
+                    isValid = false;
+                } else if (rules.minLength && field.value.length < rules.minLength) {
+                    showError(field, errorDiv, rules.message);
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function showError(field, errorDiv, message) {
+            field.parentElement.classList.add('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        document.getElementById("contact-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            const formData = {
+                name: document.getElementById("contact-name").value,
+                phone: document.getElementById("contact-phone").value,
+                email: document.getElementById("contact-email").value,
+                subject: document.getElementById("subject").value,
+                message: document.getElementById("contact-message").value,
+            };
+
+            emailjs.send("service_ziu056s", "template_ytrx1ng", formData)
+                .then(
+                                    (response) => {
+                                        Swal.fire({
+                title: "Good job!",
+                text: "Email sent successfully!",
+                icon: "success"
+                });
+                        this.reset();
+                    },
+                    (error) => {
+
+                        alert("Failed to send message. Please try again later.");
+                        console.error(error);
+                    }
+                );
+        });
+    </script>
+    
 </body>
 
 </html>
